@@ -12,6 +12,6 @@ States:
 | ESPConnected,           | >   | AT+CIPSTART="TCP","",80   | >   | OK             | >   | ESPConnectionStarted  |
 | ESPConnectionStarted,   | >   | AT+CIPSEND=21             | >   | OK             | >   | ESPDataStreamOpened   |
 | ESPDataStreamOpened,    | >   | GET /state HTTP/1.1       | >   | SEND OK        | >   | ESPDataSent           |
-| ESPDataSent,            | >   |                           | >   | { data }       | >   | ESPDataRecieved       |
+| ESPDataSent,            | >   | -                         | >   | { data }       | >   | ESPDataRecieved       |
 | ESPDataRecieved,        | >   | AT+CIPCLOSE               | >   | OK | ERROR     | >   | ESPConnectionClosed   | 
-| ESPConnectionClosed     | >   |                           | >   |                | >   | ESPConnected          |
+| ESPConnectionClosed     | >   | -                         | >   | -              | >   | ESPConnected          |
