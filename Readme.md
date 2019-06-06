@@ -1,0 +1,1 @@
+C code for ATMega32 connected with ESP8266 and servo for lock controlled via WiFi.
