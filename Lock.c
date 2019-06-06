@@ -281,7 +281,7 @@ int main(void)
   str_uart_send("Inited\n");
   while (1)
   {
-    
-    _delay_ms(1000);
+    stateAutomatActionSendESP8266();
+    _delay_ms(2000);
   }
 }
