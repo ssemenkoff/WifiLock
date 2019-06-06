@@ -10,17 +10,54 @@
 #define RightComand "Right"
 #define LeftComand "Left"
 
+#define StartComand "AT\r\n"
+#define SetModeComand "AT+CWMODE=3\r\n"
+#define DisconnectWiFiComand "AT+CWQAP\r\n"
+#define ConnectWiFiComand "AT+CWJAP=\"ssemenkoff-private\",\"semenkoff\"\r\n"
+#define ConnectionStartCommand "AT+CIPSTART=\"TCP\",\"192.168.100.10\",80\r\n"
+#define OpenDataStreamComand "AT+CIPSEND=21\r\n""
+#define SendData "GET /state HTTP/1.1\r\n"
+#define CloseConnectionComand "AT+CIPCLOSE\r\n"
+
+#define ResponceOK "OK"
+#define ResponceERROR "ERROR"
 
 unsigned char sBuffer[IO_SIZE];
 unsigned char *sPut;
 unsigned char *sGet;
 int buffer_length;
 
+bool state_opened = true;
+int current_state;
+
+enum ESP8266_States {
+  ESPStart,
+  ESPInited,
+  ESPModeSet,
+  ESPDisconected,
+  ESPConnected,
+  ESPConnectionStarted,
+  ESPDataStreamOpened,
+  ESPDataSent,
+  ESPDataRecieved,
+  ESPConnectionClosed
+};
+
 void SIOInit(void)
 {
     sPut = sBuffer;
     sGet = sBuffer;
     buffer_length = 0;
+}
+
+void Close(void) {
+  state_opened = false;
+  RotateTo(right);
+}
+
+void Open() {
+  state_opened = true;
+  RotateTo(left);
 }
 
 void SIOPut(unsigned char input)
@@ -61,7 +98,7 @@ enum Rotate
   right
 };
 
-void Rotate_By_Angle(enum Rotate angle)
+void RotateTo(enum Rotate angle)
 {
   switch (angle)
   {
@@ -102,16 +139,6 @@ void str_uart_send(char *string)
   }
 }
 
-void doAction(char* action) 
-{
-  if(strcmp(action, RightComand) == 0) {
-    Rotate_By_Angle(right);
-  }
-  if(strcmp(action, LeftComand) == 0) {
-    Rotate_By_Angle(left);
-  }
-}
-
 char* getStringFromBuffer(void) {
   static char result[IO_SIZE];
 
@@ -126,6 +153,92 @@ char* getStringFromBuffer(void) {
   return result;
 }
 
+void stateAutomatActionRecieveESP8266(char* responce) {
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPStart) {
+    current_state = ESPInited;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPInited) {
+    current_state = ESPModeSet;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPModeSet) {
+    current_state = ESPDisconected;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPDisconected) {
+    current_state = ESPConnected;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPConnected) {
+    current_state = ESPConnectionStarted;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPConnectionStarted) {
+    current_state = ESPDataStreamOpened;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPDataStreamOpened) {
+    current_state = ESPDataSent;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPDataSent) {
+    current_state = ESPDataRecieved;
+    stateAutomatActionSendESP8266();
+  }
+  if(strcmp(responce, ResponceOK) == 0 && current_state == ESPDataRecieved) {
+    current_state = ESPConnectionClosed;
+    stateAutomatActionSendESP8266();
+  }
+
+  if(strcmp(responce, RightComand) == 0) {
+    RotateTo(right);
+  }
+  if(strcmp(responce, LeftComand) == 0) {
+    RotateTo(left);
+  }
+}
+
+void stateAutomatActionSendESP8266() {
+  if(current_state == ESPStart) {
+    str_uart_send(StartComand);
+  }
+  if(current_state == ESPInited) {
+    str_uart_send(SetModeComand);
+  }
+  if(current_state == ESPModeSet) {
+    str_uart_send(DisconnectWiFiComand);
+  }
+  if(current_state == ESPDisconected) {
+    str_uart_send(ConnectWiFiComand);
+  }
+  if(current_state == ESPConnected) {
+    str_uart_send(ConnectionStartCommand);
+  }
+  if(current_state == ESPConnectionStarted) {
+    str_uart_send(OpenDataStreamComand);
+  }
+  if(current_state == ESPDataStreamOpened) {
+    str_uart_send(SendData)
+  }
+  if(current_state == ESPDataSent) {
+
+  }
+  if(current_state == ESPDataRecieved) {
+
+  }
+  if(current_state == ESPConnectionClosed) {
+
+  }
+
+  if(strcmp(action, RightComand) == 0) {
+    RotateTo(right);
+  }
+  if(strcmp(action, LeftComand) == 0) {
+    RotateTo(left);
+  }
+}
+
 ISR(USART_RXC_vect)
 {
   unsigned char NUM = UDR;
@@ -134,7 +247,7 @@ ISR(USART_RXC_vect)
   if(NUM == '\r') {
     uart_send(NUM);
     char* tmp = getStringFromBuffer();
-    doAction(tmp);
+    stateAutomatActionRecieveESP8266(tmp);
     SIOClear();
     
     return;
@@ -163,15 +276,12 @@ int main(void)
   SIOInit();
   sei();
 
+  current_state = ESPStart;
+
   str_uart_send("Inited\n");
   while (1)
   {
     
     _delay_ms(1000);
-  //  str_uart_send("AT");
-    // Rotate_By_Angle(right);
-    // _delay_ms(1000);
-    // Rotate_By_Angle(left);
-    // _delay_ms(1000);
   }
 }
