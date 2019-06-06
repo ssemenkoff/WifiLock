@@ -4,7 +4,7 @@ Finite automation for microcontroller:
 
 States:
 |   State                   |         |   UART Send                 |         |   UART Recieve   |         |   New state             |
-|---------------------------|---------|-----------------------------|---------|------------------|---------|-------------------------|
+| ------------------------- | ------- | --------------------------- | ------- | ---------------- | ------- | ----------------------- |
 |   ESPStart,               |   -->   |   AT                        |   -->   |   OK             |   -->   |   ESPInited             |
 |   ESPInited,              |   -->   |   AT+CWMODE=3               |   -->   |   OK             |   -->   |   ESPModeSet            |
 |   ESPModeSet,             |   -->   |   AT+CWQAP                  |   -->   |   OK             |   -->   |   ESPDisconected        |
