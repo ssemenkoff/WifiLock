@@ -15,7 +15,7 @@
 #define DisconnectWiFiComand "AT+CWQAP\r\n"
 #define ConnectWiFiComand "AT+CWJAP=\"ssemenkoff-private\",\"semenkoff\"\r\n"
 #define ConnectionStartCommand "AT+CIPSTART=\"TCP\",\"192.168.100.10\",80\r\n"
-#define OpenDataStreamComand "AT+CIPSEND=21\r\n""
+#define OpenDataStreamComand "AT+CIPSEND=21\r\n"
 #define SendData "GET /state HTTP/1.1\r\n"
 #define CloseConnectionComand "AT+CIPCLOSE\r\n"
 
