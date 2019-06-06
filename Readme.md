@@ -3,6 +3,7 @@ C code for ATMega32 connected with ESP8266 and servo for lock controlled via WiF
 Finite automation for microcontroller:
 
 States:
+
 | State                   | >   | UART Send                 | >   | UART Recieve   | >   | New state             |
 | ----------------------- | --- | --------------------------| --- | -------------- | --- | --------------------- |
 | ESPStart,               | >   | AT                        | >   | OK             | >   | ESPInited             |
